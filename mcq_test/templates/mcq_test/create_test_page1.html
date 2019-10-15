@@ -1,0 +1,9 @@
+<HTML>
+    <body>
+        <h1> SAGAR1</h1>
+        <form method="POST" class="post-form">{% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="save btn btn-default">Next</button>
+        </form>
+    </body>
+</HTML>
