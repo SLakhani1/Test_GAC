@@ -1,0 +1,15 @@
+<HTML>
+    <body>
+        <h1> SAGAR2</h1>
+        {% if i %}
+        <p>Username and Password didn't match.Please try again.</p>
+        {% endif %}
+
+        <form method="POST" action="{% url 'mcq_test:login_view' %}">
+        {% csrf_token %}
+            <input type="text" placeholder="Enter Username" name="username"><br/>
+            <input type="password" placeholder="Enter Password" name="password"> <br/>  
+            <button type="submit">Login</button>
+        </form>
+    </body>
+</HTML>

@@ -4,7 +4,7 @@ from .models import Test, Question, Choice
 class TestCreateNameForm(forms.ModelForm):
     class Meta:
         model = Test
-        fields = ('name',)
+        fields = ('name','start_date', 'start_time', 'duration',)
 
 class TestCreateQuestionForm(forms.ModelForm):
     

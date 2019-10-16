@@ -19,8 +19,12 @@ class Users(models.Model):
         return str(self.user.username)
 
 class Test(models.Model):
+    user = models.ForeignKey("Users", on_delete=models.CASCADE)
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100)
+    start_date = models.DateField()
+    start_time = models.TimeField()
+    duration = models.TimeField()
 
     def __str__(self):
         return str(self.id) + " " + self.name
