@@ -3,15 +3,17 @@ from django.http import HttpResponse
 from django.contrib.auth import login, logout, authenticate
 from django.utils import timezone
 from .forms import TestCreateNameForm, TestCreateQuestionForm, TestCreateChoiceForm
-from .models import Test, Users, User
+from .models import Test, Users, User, Question, Choice
 
 # Create your views here.
 
 def login_view(request):
-    # if request.user.is_authenticated() and request.user.is_student:
-    #     return redirect('dashboard_student')
-    #  if request.user.is_authenticated() and request.user.is_faculty:
-    #     return redirect('dashboard_student')
+    if request.user.is_authenticated:
+        user = Users.objects.filter(user=request.user)[0]
+        if user.is_student:
+            return redirect('mcq_test:dashboard_student')
+        if user.is_faculty:
+            return redirect('mcq_test:dashboard_faculty')
     if request.method == "POST":
         username = request.POST.get('username')
         password = request.POST.get('password')
@@ -21,8 +23,7 @@ def login_view(request):
             login(request, userObject)
             user = Users.objects.filter(user=userObject)
             if user and user[0].is_faculty:
-                return redirect('mcq_test:create_test_page1')
-                pass
+                return redirect('mcq_test:dashboard_faculty')
 
             elif user and user[0].is_student:
                 # return redirect('dashboard_student')
@@ -63,7 +64,7 @@ def create_test_page1(request) :
             form = TestCreateNameForm()
             return render(request, 'mcq_test/create_test_page1.html', {'form': form})
     else:
-        return redirect('mcq_test:login')
+        return redirect('mcq_test:login_view')
 
 def create_test_page2(request, tid) :
     # if request.user.is_authenticated() and request.user.is_faculty:
@@ -114,5 +115,26 @@ def create_test_page2(request, tid) :
         form5 = TestCreateChoiceForm(prefix="c4")
         return render(request, 'mcq_test/create_test_page2.html', {'form1': form1, 'form2':form2, 'form3': form3, 'form4':form4, 'form5': form5, 'tid':tid})
 
-def display_test(request):
-    pass
+def display_test_faculty(request, tid):
+    user = Users.objects.filter(user=request.user)[0]
+    tests = Test.objects.filter(user=user)
+    if request.user.is_authenticated and user.is_faculty and tests:
+        test = Test.objects.filter(id=tid)[0]
+        questions = Question.objects.filter(test=test)
+        choices=Choice.objects.none()
+        for question in questions:
+            choices = choices | Choice.objects.filter(question=question)
+        return render(request, 'mcq_test/display_test_faculty.html', {'test':test, 'questions':questions, 'choices':choices})
+    else:
+        return redirect('mcq_test:login_view')
+
+    
+
+def dashboard_faculty(request):
+    user = Users.objects.filter(user=request.user)[0]
+    if request.user.is_authenticated and user.is_faculty:
+        tests = Test.objects.filter(user=user)
+        return render(request, 'mcq_test/dashboard_faculty.html', {'tests': tests})
+    else:
+        return redirect('mcq_test:login_view')
+

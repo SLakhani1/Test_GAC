@@ -41,17 +41,16 @@ class Choice(models.Model):
     choice_id = models.AutoField(primary_key=True)
     question = models.ForeignKey("Question", related_name="choices", on_delete=models.CASCADE)
     choice = models.CharField(max_length=50)
-    # position = models.IntegerField("position")
     answer = models.BooleanField(default=False)
-
-    # class Meta:
-    #     unique_together = [
-    #         # no duplicated choice per question
-    #         ("question", "choice"), 
-    #         # no duplicated position per question 
-    #         ("question", "position") 
-    #     ]
-    #     ordering = ("position",)
 
     def __str__(self):
         return str(self.question) + " - " +str(self.choice_id)
+
+class Marks(models.Model):
+    id = models.AutoField(primary_key=True)
+    test = models.ForeignKey('Test', on_delete=models.CASCADE)
+    student = models.ForeignKey('Users', on_delete=models.CASCADE)
+    marks = models.IntegerField(default=0)
+    
+    def __str__(self):
+        return str(self.test_id) + '-' + str(self.student) + '-' + str(self.marks)

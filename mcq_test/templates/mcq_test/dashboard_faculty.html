@@ -1,0 +1,8 @@
+<HTML>
+    <body>
+        <h1> Faculty DASHBOARD</h1>
+        {% for test in tests %}
+            <a href="{% url 'mcq_test:display_test_faculty' tid=test.id%}">{{ test.name }}</a><br/>
+        {% endfor %}
+    </body>
+</HTML>
