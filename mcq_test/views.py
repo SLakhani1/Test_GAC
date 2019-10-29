@@ -3,8 +3,8 @@ from django.http import HttpResponse
 from django.contrib.auth import login, logout, authenticate
 from django.utils import timezone
 from .forms import TestCreateNameForm, TestCreateQuestionForm, TestCreateChoiceForm
-from .models import Test, Users, User, Question, Choice
-
+from .models import Test, Users, User, Question, Choice, Marks
+import base64
 # Create your views here.
 
 def login_view(request):
@@ -26,8 +26,8 @@ def login_view(request):
                 return redirect('mcq_test:dashboard_faculty')
 
             elif user and user[0].is_student:
-                # return redirect('dashboard_student')
-                pass
+                return redirect('mcq_test:dashboard_student')
+                
             else:
                 return render(request, 'mcq_test/login.html', {'i': 'Invalid ID/Password'})
         else:
@@ -101,8 +101,7 @@ def create_test_page2(request, tid) :
             choice4.choice = form5.cleaned_data['choice']
             choice4.answer = form5.cleaned_data['answer']
             choice4.save()
-            # if next button new test_page2 instance else home of faculty
-        #     if
+            
             if request.POST.get("next"):
                 return redirect('mcq_test:create_test_page2', tid=test.id)
             elif request.POST.get("submit"):
@@ -137,4 +136,81 @@ def dashboard_faculty(request):
         return render(request, 'mcq_test/dashboard_faculty.html', {'tests': tests})
     else:
         return redirect('mcq_test:login_view')
+
+def dashboard_student(request):
+    user = Users.objects.filter(user=request.user)[0]
+    if request.user.is_authenticated and user.is_student:
+        marks = Marks.objects.filter(student=user)
+        tests = Test.objects.none()
+        for mark in marks:
+            tests = tests | Test.objects.filter(id=mark.test.id)
+        return render(request, 'mcq_test/dashboard_student.html', {'tests': tests, 'marks': marks})
+    else:
+        return redirect('mcq_test:login_view')
+
+def leaderboard(request, tid):
+    if request.user.is_authenticated:
+        test = Test.objects.filter(id=tid)[0]
+        marks = Marks.objects.filter(test=test)
+        return render(request, 'mcq_test/leaderboard.html', {'marks': marks, 'tid':test.id})
+    else:
+        return redirect('mcq_test:login_view')
+
+def test_view(request, tid):
+    if request.user.is_authenticated:
+        user=Users.objects.filter(user=request.user)[0]
+        if user.is_student:
+            #Add specific user condition here
+            if request.method == "POST":
+                # print(tid)
+                test = Test.objects.filter(id=tid)[0]
+                questions = Question.objects.filter(test=test)
+                answers = {}
+                answers_selected = {}
+
+                for question in questions:
+                    temp = []
+                    for choice in list(Choice.objects.filter(question=question, answer=True)):
+                        temp.append(str(choice.choice_id))
+                    
+                    answers[question.question] = temp
+
+                for question in questions:
+                    answers_selected[question.question] = request.POST.getlist(question.question)
+                
+                marks = 0
+                for question in questions:
+                    base = answers[question.question]
+                    check = answers_selected[question.question]
+                    if base == check:
+                        marks+=1
+                    #update marks table
+                
+                marks_object = Marks()
+                marks_object.test = test
+                marks_object.student = user
+                marks_object.marks = marks
+                marks_object.save()
+                return HttpResponse('Thanks...' + str(marks))
+            else:
+                test = Test.objects.filter(id=tid)[0]
+                marks = Marks.objects.filter(student=user, test=test)
+                if marks:
+                    return HttpResponse('You have already taken this test...')
+                else:
+                    test = Test.objects.filter(id=tid)[0]
+                    questions = Question.objects.filter(test=test)
+                    choices=Choice.objects.none()
+                    for question in questions:
+                        choices = choices | Choice.objects.filter(question=question)
+
+                    return render(request, 'mcq_test/test_view.html', {'test':test, 'questions':questions, 'choices':choices})
+        else:
+            return HttpResponse('You are not authorized to take this test')
+    else:
+        return redirect('mcq_test:login_view')
+
+# def encode(string):
+#     base64.b64encode(string.encode('utf-8'))
+#     base64.b64decode(encoded_string).decode('utf-8')
 

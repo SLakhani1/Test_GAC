@@ -1,0 +1,10 @@
+<HTML>
+    <body>
+        <h1> LEADERBOARD</h1><br/><br/>
+        <h1> {{ tid }}</h1><br/><br/>
+        {% for mark in marks %}
+            {{ mark.student.user.username }} - {{ mark.marks }}
+            <br/>
+        {% endfor %}
+    </body>
+</HTML>

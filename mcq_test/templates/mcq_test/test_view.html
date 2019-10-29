@@ -1,0 +1,23 @@
+<HTML>
+    <body>
+        <h1> {{ test.name }}</h1><br/>
+        <h2> {{ test.date }}</h2><br/>
+        <h2> {{ test.time }}</h2><br/>
+        <h2> {{ test.duration }}</h2><br/>
+        <br/>
+        <form method="POST" class="post-form">{% csrf_token %}
+            {% for question in questions %}
+                <h4>{{ question.question }}</h4>
+                <br/>
+                {% for choice in choices %}
+                    {% if choice.question == question %}
+                    <input type="checkbox" value="{{ choice.choice_id }}" name="{{ question.question }}"><h6> {{ choice.choice }}</h6> </input>
+                    <br/>
+                    {% endif %}
+                {% endfor %}
+                <br/>
+            {% endfor %}
+            <button type="submit" class="save btn btn-default">Next</button>
+        </form>
+    </body>
+</HTML>
