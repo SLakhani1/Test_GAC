@@ -24,7 +24,7 @@ class Test(models.Model):
     name = models.CharField(max_length=100)
     start_date = models.DateField()
     start_time = models.TimeField()
-    duration = models.TimeField()
+    duration = models.DurationField()
 
     def __str__(self):
         return str(self.id) + " " + self.name

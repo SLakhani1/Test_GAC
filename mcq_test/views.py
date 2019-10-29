@@ -4,6 +4,7 @@ from django.contrib.auth import login, logout, authenticate
 from django.utils import timezone
 from .forms import TestCreateNameForm, TestCreateQuestionForm, TestCreateChoiceForm
 from .models import Test, Users, User, Question, Choice, Marks
+from datetime import datetime
 import base64
 # Create your views here.
 
@@ -46,7 +47,6 @@ def create_test_page1(request) :
         if request.method == "POST" :
             form = TestCreateNameForm(request.POST) #, user=request.user)
             if form.is_valid():
-                print(request.user)
                 test = form.save(commit=False)
                 # test.author = request.user
                 # test.published_date = timezone.now()
@@ -162,7 +162,6 @@ def test_view(request, tid):
         if user.is_student:
             #Add specific user condition here
             if request.method == "POST":
-                # print(tid)
                 test = Test.objects.filter(id=tid)[0]
                 questions = Question.objects.filter(test=test)
                 answers = {}
@@ -184,7 +183,6 @@ def test_view(request, tid):
                     check = answers_selected[question.question]
                     if base == check:
                         marks+=1
-                    #update marks table
                 
                 marks_object = Marks()
                 marks_object.test = test
@@ -195,8 +193,23 @@ def test_view(request, tid):
             else:
                 test = Test.objects.filter(id=tid)[0]
                 marks = Marks.objects.filter(student=user, test=test)
+                curr = timezone.localtime(timezone.now())
+                current = datetime(year=curr.year, month=curr.month, day=curr.day, hour=curr.hour, minute=curr.minute, second=curr.second)
+                exam_date = test.start_date
+                exam_time = test.start_time
+                exam_start = datetime(year=exam_date.year, month=exam_date.month, day=exam_date.day, hour=exam_time.hour, minute=exam_time.minute, second=exam_time.second)
+                exam_end = exam_start + test.duration
                 if marks:
                     return HttpResponse('You have already taken this test...')
+                elif ( current < exam_start):
+                    return HttpResponse('Test has not started...')
+                    # return the scorecard here
+                elif ( current > exam_end):
+                    return HttpResponse('Test is over...')
+                    # return the scorecard here
+                # elif ( current <= exam_start):
+                #     return HttpResponse('Test has not started...')
+                    # return the scorecard here
                 else:
                     test = Test.objects.filter(id=tid)[0]
                     questions = Question.objects.filter(test=test)
