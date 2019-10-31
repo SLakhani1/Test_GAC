@@ -4,7 +4,7 @@ from django.contrib.auth import login, logout, authenticate
 from django.utils import timezone
 from .forms import TestCreateNameForm, TestCreateQuestionForm, TestCreateChoiceForm
 from .models import Test, Users, User, Question, Choice, Marks
-from datetime import datetime
+from datetime import datetime, date, time, timedelta
 import base64
 # Create your views here.
 
@@ -51,9 +51,12 @@ def create_test_page1(request) :
                 # test.author = request.user
                 # test.published_date = timezone.now()
                 test.name = request.POST.get('name')
-                test.start_date = request.POST.get('start_date')
-                test.start_time = request.POST.get('start_time')
-                test.duration = request.POST.get('duration')
+                start_date = request.POST.get('start_date')
+                test.start_date = date(year=int(start_date[0:4]), month=int(start_date[5:7]), day=int(start_date[8:10]))
+                start_time = request.POST.get('start_time')
+                test.start_time = time(hour=int(start_time[0:2]), minute=int(start_time[3:5]), second=int(start_time[6:8]))
+                duration = request.POST.get('duration')
+                test.duration = timedelta(days=0, hours=int(duration[0:2]), minutes=int(duration[3:5]), seconds=(int(duration[6:8])))
                 test.user = user
                 test.save()
                 return redirect('mcq_test:create_test_page2', tid=test.id)
@@ -105,7 +108,7 @@ def create_test_page2(request, tid) :
             if request.POST.get("next"):
                 return redirect('mcq_test:create_test_page2', tid=test.id)
             elif request.POST.get("submit"):
-                return redirect('mcq_test:teacher_dashboard')                
+                return redirect('mcq_test:dashboard_faculty')                
     else:
         form1 = TestCreateQuestionForm(prefix="q")
         form2 = TestCreateChoiceForm(prefix="c1")
@@ -164,32 +167,35 @@ def test_view(request, tid):
             if request.method == "POST":
                 test = Test.objects.filter(id=tid)[0]
                 questions = Question.objects.filter(test=test)
-                answers = {}
-                answers_selected = {}
+                marks = Marks.objects.filter(student=user, test=test)
+                if marks:
+                    return HttpResponse("Can't Submit as You have already taken this test...")
+                else:
+                    answers = {}
+                    answers_selected = {}
 
-                for question in questions:
-                    temp = []
-                    for choice in list(Choice.objects.filter(question=question, answer=True)):
-                        temp.append(str(choice.choice_id))
+                    for question in questions:
+                        temp = []
+                        for choice in list(Choice.objects.filter(question=question, answer=True)):
+                            temp.append(str(choice.choice_id))
+                        
+                        answers[question.question] = temp
+
+                    for question in questions:
+                        answers_selected[question.question] = request.POST.getlist(question.question)
                     
-                    answers[question.question] = temp
-
-                for question in questions:
-                    answers_selected[question.question] = request.POST.getlist(question.question)
-                
-                marks = 0
-                for question in questions:
-                    base = answers[question.question]
-                    check = answers_selected[question.question]
-                    if base == check:
-                        marks+=1
-                
-                marks_object = Marks()
-                marks_object.test = test
-                marks_object.student = user
-                marks_object.marks = marks
-                marks_object.save()
-                return HttpResponse('Thanks...' + str(marks))
+                    marks = 0
+                    for question in questions:
+                        base = answers[question.question]
+                        check = answers_selected[question.question]
+                        if base == check:
+                            marks+=1
+                    marks_object = Marks()
+                    marks_object.test = test
+                    marks_object.student = user
+                    marks_object.marks = marks
+                    marks_object.save()
+                    return HttpResponse('Thanks...' + str(marks))
             else:
                 test = Test.objects.filter(id=tid)[0]
                 marks = Marks.objects.filter(student=user, test=test)
