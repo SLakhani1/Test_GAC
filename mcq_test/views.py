@@ -10,11 +10,15 @@ import base64
 
 def login_view(request):
     if request.user.is_authenticated:
-        user = Users.objects.filter(user=request.user)[0]
-        if user.is_student:
-            return redirect('mcq_test:dashboard_student')
-        if user.is_faculty:
-            return redirect('mcq_test:dashboard_faculty')
+        users = Users.objects.filter(user=request.user)
+        if not users:
+            return redirect('mcq_test:logout')
+        else:
+            user=users[0]
+            if user.is_student:
+                return redirect('mcq_test:dashboard_student')
+            if user.is_faculty:
+                return redirect('mcq_test:dashboard_faculty')
     if request.method == "POST":
         username = request.POST.get('username')
         password = request.POST.get('password')
@@ -108,7 +112,7 @@ def create_test_page2(request, tid) :
             if request.POST.get("next"):
                 return redirect('mcq_test:create_test_page2', tid=test.id)
             elif request.POST.get("submit"):
-                return redirect('mcq_test:dashboard_faculty')                
+                return redirect('mcq_test:generate_test_link', tid=test.id)                
     else:
         form1 = TestCreateQuestionForm(prefix="q")
         form2 = TestCreateChoiceForm(prefix="c1")
@@ -116,6 +120,10 @@ def create_test_page2(request, tid) :
         form4 = TestCreateChoiceForm(prefix="c3")
         form5 = TestCreateChoiceForm(prefix="c4")
         return render(request, 'mcq_test/create_test_page2.html', {'form1': form1, 'form2':form2, 'form3': form3, 'form4':form4, 'form5': form5, 'tid':tid})
+
+def generate_test_link(request, tid):
+    link = "http://127.0.0.1:8000/test/" + (base64.b64encode(str(tid).encode('utf-8'))).decode('utf-8')
+    return render(request, 'mcq_test/generate_test_link.html', {'link': link})
 
 def display_test_faculty(request, tid):
     user = Users.objects.filter(user=request.user)[0]
@@ -159,12 +167,13 @@ def leaderboard(request, tid):
     else:
         return redirect('mcq_test:login_view')
 
-def test_view(request, tid):
+def test_view(request, test_id):
     if request.user.is_authenticated:
         user=Users.objects.filter(user=request.user)[0]
         if user.is_student:
             #Add specific user condition here
             if request.method == "POST":
+                tid = int(base64.b64decode(test_id).decode('utf-8'))
                 test = Test.objects.filter(id=tid)[0]
                 questions = Question.objects.filter(test=test)
                 marks = Marks.objects.filter(student=user, test=test)
@@ -197,6 +206,7 @@ def test_view(request, tid):
                     marks_object.save()
                     return HttpResponse('Thanks...' + str(marks))
             else:
+                tid = int(base64.b64decode(test_id).decode('utf-8'))
                 test = Test.objects.filter(id=tid)[0]
                 marks = Marks.objects.filter(student=user, test=test)
                 curr = timezone.localtime(timezone.now())

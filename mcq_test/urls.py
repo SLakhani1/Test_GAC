@@ -11,6 +11,7 @@ urlpatterns = [
     path('student/', views.dashboard_student, name='dashboard_student'),
     path('create/name/', views.create_test_page1, name='create_test_page1'), 
     path('create/ques/<int:tid>/', views.create_test_page2, name='create_test_page2'), 
-    path('test/<int:tid>/', views.test_view, name='test_view'), 
+    path('create/link/<int:tid>/', views.generate_test_link, name='generate_test_link'), 
+    path('test/<str:test_id>/', views.test_view, name='test_view'), 
     # path('display/', views.display_test, name='display_test'), 
 ]
