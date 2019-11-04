@@ -1,0 +1,83 @@
+<HTML>
+    <head>
+        {% load static %}
+        <link href="{% static 'test_view/css/test_view.css' %}" rel="stylesheet" id="bootstrap-css">
+    </head>
+        <body>
+                <div class="container">
+                        <div class="row"><br>
+                            <span class="image-position">
+                                <h1> {{ test.name }} {{ test.start_date }} {{ test.start_time }} {{ test.duration }}</h1>
+                            </span>
+                        </div>
+                        <br>
+                        <br>
+                        <form method="POST" class="post-form">{% csrf_token %}
+                            {% for question in questions %}
+                                <div class="row"><br><br>
+                                    <div class="col-sm-8 col-sm-offset-2">
+                                        <div class="loader">
+                        
+                                            <div id="quiz">
+                                        
+                                                <div class="question">
+                                                    <h3><span class="label label-warning" id="qid">1</span>
+                                                    <span id="question"> {{ question.question }}?</span>
+                                                    </h3>
+                                                    
+                                                </div>
+                                                <br>
+                                                <ul>
+                                                        <li>
+                                                                <input type="radio" id="f-option" name="selector" value="1">
+                                                                <label for="f-option" class="element-animation">/*-- comment --*/</label>
+                                                                <div class="check"></div>
+                                                              </li>
+                                                              
+                                                              <li>
+                                                                <input type="radio" id="s-option" name="selector" value="2">
+                                                                <label for="s-option" class="element-animation">comment //</label>
+                                                                <div class="check"><div class="inside"></div></div>
+                                                              </li>
+                                                              
+                                                              <li>
+                                                                <input type="radio" id="t-option" name="selector" value="3">
+                                                                <label for="t-option" class="element-animation">comment [ ]</label>
+                                                                <div class="check"><div class="inside"></div></div>
+                                                              </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        <div class="text-muted">
+                                            <span id="answer"></span>
+                                        </div>
+                                        
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </form>
+                        <div class="row">
+                            <div class="col-sm-8 col-sm-offset-2">
+                                <div id="result-of-question" class="pulse animated" style="display: none;">
+                                    <span id="totalCorrect" class="pull-right"></span>
+                                    <table class="table table-hover table-responsive" >
+                                        <thead>
+                                            <tr>
+                                                <th>Question No.</th>
+                                                <th>Our answer</th>
+                                                <th>Your answer</th>
+                                                <th>Result</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="quizResult"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                <button type="submit" class="save btn btn-default">Submit</button>
+            
+        </body>
+    </HTML>
+    

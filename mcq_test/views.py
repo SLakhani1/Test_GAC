@@ -144,7 +144,7 @@ def dashboard_faculty(request):
     user = Users.objects.filter(user=request.user)[0]
     if request.user.is_authenticated and user.is_faculty:
         tests = Test.objects.filter(user=user)
-        return render(request, 'mcq_test/dashboard_faculty.html', {'tests': tests})
+        return render(request, 'mcq_test/dashboard_faculty.html', {'tests': tests, 'username':request.user.username})
     else:
         return redirect('mcq_test:login_view')
 
@@ -155,7 +155,7 @@ def dashboard_student(request):
         tests = Test.objects.none()
         for mark in marks:
             tests = tests | Test.objects.filter(id=mark.test.id)
-        return render(request, 'mcq_test/dashboard_student.html', {'tests': tests, 'marks': marks})
+        return render(request, 'mcq_test/dashboard_student.html', {'tests': tests, 'marks': marks, 'username':request.user.username})
     else:
         return redirect('mcq_test:login_view')
 
